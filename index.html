@@ -14,41 +14,43 @@
     body { margin:0; font-family:Arial; background:#0d0d0d; color:#fff; }
     header{ padding:15px; text-align:center; font-size:22px; font-weight:bold; background:#000; border-bottom:1px solid #222; }
     input, button{ padding:10px; margin:5px 0; border-radius:8px; border:none; outline:none; width:90%; }
-    button{ background:linear-gradient(45deg,#00ff88,#00cc6a); cursor:pointer; }
-    .container{ display:flex; flex-wrap:wrap; gap:15px; padding:20px; justify-content:center; }
-    .card{ width:160px; background:#111; border-radius:15px; padding:10px; text-align:center; }
+    button{ font-weight:bold; }
+    .container{ display:flex; flex-wrap:wrap; gap:15px; padding:20px; justify-content:center; overflow-x:auto; }
+    .card{ width:160px; background:#111; border-radius:15px; padding:10px; text-align:center; flex-shrink:0; }
     .card img{ width:100%; border-radius:10px; }
     .title{ font-size:14px; margin-top:8px; }
     .price{ color:#00ff88; font-weight:bold; margin:5px 0; }
+    .locked{ background: linear-gradient(45deg,#555,#888); cursor:pointer; }
+    .unlocked{ background: linear-gradient(45deg,#00ff88,#00cc6a); cursor:default; }
   </style>
 </head>
 <body>
 
 <header>Sarkho Book Premium</header>
 
-<div id="loginDiv">
-  <h2>Login</h2>
+<!-- Admin Login -->
+<div id="loginDiv" style="padding:15px;">
+  <h2>Admin Login</h2>
   <input type="email" id="email" placeholder="Email"><br>
   <input type="password" id="pass" placeholder="Password"><br>
   <button onclick="login()">Login</button>
   <p id="loginMsg"></p>
 </div>
 
-<div id="mainDiv" style="display:none;">
-  <div class="search">
-    <input type="text" placeholder="Search books..." onkeyup="searchBook(this.value)">
-  </div>
-
-  <div class="container" id="bookList"></div>
-
-  <div id="uploadDiv" style="margin-top:20px;">
-    <h3>Admin Upload</h3>
-    <input type="file" id="pdfFile"><br>
-    <input type="text" id="pdfTitle" placeholder="Book Title"><br>
-    <button onclick="uploadPDF()">Upload PDF</button>
-    <p id="uploadMsg"></p>
-  </div>
+<!-- Admin Upload Section -->
+<div id="uploadDiv" style="display:none; padding:15px;">
+  <h3>Upload PDF (Admin Only)</h3>
+  <input type="file" id="pdfFile"><br>
+  <input type="text" id="pdfTitle" placeholder="Book Title"><br>
+  <button onclick="uploadPDF()">Upload PDF</button>
+  <p id="uploadMsg"></p>
 </div>
+
+<!-- Book List -->
+<div class="search" style="text-align:center; padding:10px;">
+  <input type="text" placeholder="Search books..." onkeyup="searchBook(this.value)">
+</div>
+<div class="container" id="bookList"></div>
 
 <script>
   // Firebase config
@@ -66,52 +68,44 @@
   const auth = firebase.auth();
   const db = firebase.database();
   const storage = firebase.storage();
-
-  // Admin email (replace with your admin email)
   const adminEmail = "admin@example.com";
 
-  // Login function
+  // Admin login
   function login() {
     const email = document.getElementById("email").value;
     const pass = document.getElementById("pass").value;
     auth.signInWithEmailAndPassword(email, pass)
-      .then((userCredential)=>{
-        document.getElementById("loginDiv").style.display = "none";
-        document.getElementById("mainDiv").style.display = "block";
-        if(email !== adminEmail){
-          document.getElementById("uploadDiv").style.display = "none";
+      .then(()=>{
+        if(auth.currentUser.email === adminEmail){
+          document.getElementById("uploadDiv").style.display = "block";
+          document.getElementById("loginDiv").style.display = "none";
+        } else {
+          alert("Not authorized");
+          auth.signOut();
         }
-        loadBooks();
       })
       .catch(err=>{
         document.getElementById("loginMsg").innerText = err.message;
       });
   }
 
-  // Upload PDF
+  // Admin upload PDF
   function uploadPDF() {
     const file = document.getElementById("pdfFile").files[0];
     const title = document.getElementById("pdfTitle").value;
-    if(!file || !title){ alert("Select file and title"); return; }
+    if(!file || !title){ alert("Select file & enter title"); return; }
 
     const storageRef = storage.ref("pdfs/"+file.name);
-    const uploadTask = storageRef.put(file);
-
-    uploadTask.on('state_changed', 
-      (snapshot)=>{}, 
-      (error)=>{ document.getElementById("uploadMsg").innerText = error.message; },
-      ()=>{
-        storageRef.getDownloadURL().then(url=>{
-          const bookData = {title:title, url:url};
-          db.ref("books").push(bookData);
-          document.getElementById("uploadMsg").innerText = "Uploaded ✅";
-          loadBooks();
-        });
-      }
-    );
+    storageRef.put(file).then(()=>{
+      storageRef.getDownloadURL().then(url=>{
+        db.ref("books").push({title:title, url:url});
+        document.getElementById("uploadMsg").innerText = "Uploaded ✅";
+        loadBooks();
+      });
+    });
   }
 
-  // Load books
+  // Load all books
   function loadBooks() {
     const container = document.getElementById("bookList");
     container.innerHTML = "";
@@ -122,11 +116,20 @@
         card.className = "card";
         card.innerHTML = `<img src="https://via.placeholder.com/200">
                           <div class="title">${book.title}</div>
-                          <div class="price">Free</div>
-                          <button onclick="window.open('${book.url}','_blank')">Download</button>`;
+                          <div class="price">₹49</div>
+                          <button class="locked" onclick="unlockPDF(this,'${book.url}')">Locked 🔒</button>`;
         container.appendChild(card);
       });
     });
+  }
+
+  // Unlock PDF (free)
+  function unlockPDF(btn, url) {
+    window.open(url,'_blank');
+    btn.innerText = "Unlocked ✅";
+    btn.classList.remove("locked");
+    btn.classList.add("unlocked");
+    btn.disabled = true;
   }
 
   // Search
@@ -138,6 +141,8 @@
       card.style.display = title.includes(value) ? "block" : "none";
     });
   }
+
+  loadBooks();
 </script>
 
 </body>
