@@ -1,35 +1,52 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sarkho Book Premium</title>
+  <title>Sarkho Book Premium - Free</title>
 
   <style>
     body {
       margin: 0;
       font-family: Arial;
-      background: #000;
+      background: #0d0d0d;
       color: #fff;
     }
 
-    h1 {
+    header {
+      padding: 15px;
       text-align: center;
-      padding: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      background: #000;
+      border-bottom: 1px solid #222;
+    }
+
+    .search {
+      padding: 10px;
+      text-align: center;
+    }
+
+    .search input {
+      width: 90%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
     }
 
     .container {
       display: flex;
-      overflow-x: auto;
-      gap: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
       padding: 20px;
+      justify-content: center;
     }
 
     .card {
-      min-width: 200px;
+      width: 160px;
       background: #111;
-      border-radius: 12px;
+      border-radius: 15px;
       padding: 10px;
       text-align: center;
-      box-shadow: 0 0 10px rgba(0,255,0,0.2);
     }
 
     .card img {
@@ -37,62 +54,80 @@
       border-radius: 10px;
     }
 
+    .title {
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
     .price {
       color: #00ff88;
-      font-size: 18px;
-      margin: 10px 0;
+      font-weight: bold;
+      margin: 5px 0;
     }
 
     button {
-      background: #00ff88;
+      width: 100%;
+      padding: 8px;
       border: none;
-      padding: 8px 15px;
-      border-radius: 5px;
-      cursor: pointer;
+      border-radius: 8px;
+      background: linear-gradient(45deg, #555, #888);
       font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
     }
 
-    button:hover {
-      background: #00cc6a;
+    button.unlocked {
+      background: linear-gradient(45deg, #00ff88, #00cc6a);
+      cursor: default;
     }
   </style>
 </head>
 
 <body>
 
-<h1>Sarkho Book Premium</h1>
+<header>Sarkho Book Premium - Free</header>
 
-<div class="container">
+<div class="search">
+  <input type="text" placeholder="Search books..." onkeyup="searchBook(this.value)">
+</div>
 
-  <div class="card">
-    <img src="https://via.placeholder.com/200">
-    <h3>Math Notes</h3>
-    <p class="price">₹49</p>
-    <button>Buy Now</button>
-  </div>
+<div class="container" id="bookList">
 
   <div class="card">
     <img src="https://via.placeholder.com/200">
-    <h3>Science PDF</h3>
-    <p class="price">₹29</p>
-    <button>Buy Now</button>
-  </div>
+    <div class="title">Math Notes</div>
+    <div class="price">Free</div>
+    
+    <button id="unlockBtn">Locked 🔒</button>
 
-  <div class="card">
-    <img src="https://via.placeholder.com/200">
-    <h3>Reasoning Book</h3>
-    <p class="price">₹39</p>
-    <button>Buy Now</button>
-  </div>
-
-  <div class="card">
-    <img src="https://via.placeholder.com/200">
-    <h3>GK Notes</h3>
-    <p class="price">₹19</p>
-    <button>Buy Now</button>
   </div>
 
 </div>
+
+<script>
+var PDF_LINK = "https://drive.google.com/uc?export=download&id=YOUR_FILE_ID"; // Google Drive link
+
+document.getElementById("unlockBtn").onclick = function() {
+  window.open(PDF_LINK, "_blank");
+  this.innerText = "Unlocked ✅";
+  this.disabled = true;
+  this.classList.add("unlocked");
+}
+ 
+function searchBook(value) {
+  let cards = document.querySelectorAll(".card");
+  value = value.toLowerCase();
+
+  cards.forEach(card => {
+    let title = card.innerText.toLowerCase();
+    if (title.includes(value)) {
+      card.style.display = "block";
+    } else {
+      card.style.display = "none";
+    }
+  });
+}
+</script>
 
 </body>
 </html>
