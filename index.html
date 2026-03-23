@@ -1,132 +1,143 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sarkho Book Premium - Free</title>
+  <title>Sarkho Book Premium</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #0d0d0d;
-      color: #fff;
-    }
-
-    header {
-      padding: 15px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: bold;
-      background: #000;
-      border-bottom: 1px solid #222;
-    }
-
-    .search {
-      padding: 10px;
-      text-align: center;
-    }
-
-    .search input {
-      width: 90%;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-    }
-
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      padding: 20px;
-      justify-content: center;
-    }
-
-    .card {
-      width: 160px;
-      background: #111;
-      border-radius: 15px;
-      padding: 10px;
-      text-align: center;
-    }
-
-    .card img {
-      width: 100%;
-      border-radius: 10px;
-    }
-
-    .title {
-      font-size: 14px;
-      margin-top: 8px;
-    }
-
-    .price {
-      color: #00ff88;
-      font-weight: bold;
-      margin: 5px 0;
-    }
-
-    button {
-      width: 100%;
-      padding: 8px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(45deg, #555, #888);
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 5px;
-    }
-
-    button.unlocked {
-      background: linear-gradient(45deg, #00ff88, #00cc6a);
-      cursor: default;
-    }
+    body { margin:0; font-family:Arial; background:#0d0d0d; color:#fff; }
+    header{ padding:15px; text-align:center; font-size:22px; font-weight:bold; background:#000; border-bottom:1px solid #222; }
+    input, button{ padding:10px; margin:5px 0; border-radius:8px; border:none; outline:none; width:90%; }
+    button{ background:linear-gradient(45deg,#00ff88,#00cc6a); cursor:pointer; }
+    .container{ display:flex; flex-wrap:wrap; gap:15px; padding:20px; justify-content:center; }
+    .card{ width:160px; background:#111; border-radius:15px; padding:10px; text-align:center; }
+    .card img{ width:100%; border-radius:10px; }
+    .title{ font-size:14px; margin-top:8px; }
+    .price{ color:#00ff88; font-weight:bold; margin:5px 0; }
   </style>
 </head>
-
 <body>
 
-<header>Sarkho Book Premium - Free</header>
+<header>Sarkho Book Premium</header>
 
-<div class="search">
-  <input type="text" placeholder="Search books..." onkeyup="searchBook(this.value)">
+<div id="loginDiv">
+  <h2>Login</h2>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="pass" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+  <p id="loginMsg"></p>
 </div>
 
-<div class="container" id="bookList">
-
-  <div class="card">
-    <img src="https://via.placeholder.com/200">
-    <div class="title">Math Notes</div>
-    <div class="price">Free</div>
-    
-    <button id="unlockBtn">Locked 🔒</button>
-
+<div id="mainDiv" style="display:none;">
+  <div class="search">
+    <input type="text" placeholder="Search books..." onkeyup="searchBook(this.value)">
   </div>
 
+  <div class="container" id="bookList"></div>
+
+  <div id="uploadDiv" style="margin-top:20px;">
+    <h3>Admin Upload</h3>
+    <input type="file" id="pdfFile"><br>
+    <input type="text" id="pdfTitle" placeholder="Book Title"><br>
+    <button onclick="uploadPDF()">Upload PDF</button>
+    <p id="uploadMsg"></p>
+  </div>
 </div>
 
 <script>
-var PDF_LINK = "https://drive.google.com/uc?export=download&id=YOUR_FILE_ID"; // Google Drive link
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID",
+    databaseURL: "https://YOUR_PROJECT.firebaseio.com"
+  };
+  firebase.initializeApp(firebaseConfig);
 
-document.getElementById("unlockBtn").onclick = function() {
-  window.open(PDF_LINK, "_blank");
-  this.innerText = "Unlocked ✅";
-  this.disabled = true;
-  this.classList.add("unlocked");
-}
- 
-function searchBook(value) {
-  let cards = document.querySelectorAll(".card");
-  value = value.toLowerCase();
+  const auth = firebase.auth();
+  const db = firebase.database();
+  const storage = firebase.storage();
 
-  cards.forEach(card => {
-    let title = card.innerText.toLowerCase();
-    if (title.includes(value)) {
-      card.style.display = "block";
-    } else {
-      card.style.display = "none";
-    }
-  });
-}
+  // Admin email (replace with your admin email)
+  const adminEmail = "admin@example.com";
+
+  // Login function
+  function login() {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("pass").value;
+    auth.signInWithEmailAndPassword(email, pass)
+      .then((userCredential)=>{
+        document.getElementById("loginDiv").style.display = "none";
+        document.getElementById("mainDiv").style.display = "block";
+        if(email !== adminEmail){
+          document.getElementById("uploadDiv").style.display = "none";
+        }
+        loadBooks();
+      })
+      .catch(err=>{
+        document.getElementById("loginMsg").innerText = err.message;
+      });
+  }
+
+  // Upload PDF
+  function uploadPDF() {
+    const file = document.getElementById("pdfFile").files[0];
+    const title = document.getElementById("pdfTitle").value;
+    if(!file || !title){ alert("Select file and title"); return; }
+
+    const storageRef = storage.ref("pdfs/"+file.name);
+    const uploadTask = storageRef.put(file);
+
+    uploadTask.on('state_changed', 
+      (snapshot)=>{}, 
+      (error)=>{ document.getElementById("uploadMsg").innerText = error.message; },
+      ()=>{
+        storageRef.getDownloadURL().then(url=>{
+          const bookData = {title:title, url:url};
+          db.ref("books").push(bookData);
+          document.getElementById("uploadMsg").innerText = "Uploaded ✅";
+          loadBooks();
+        });
+      }
+    );
+  }
+
+  // Load books
+  function loadBooks() {
+    const container = document.getElementById("bookList");
+    container.innerHTML = "";
+    db.ref("books").once("value").then(snapshot=>{
+      snapshot.forEach(child=>{
+        const book = child.val();
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<img src="https://via.placeholder.com/200">
+                          <div class="title">${book.title}</div>
+                          <div class="price">Free</div>
+                          <button onclick="window.open('${book.url}','_blank')">Download</button>`;
+        container.appendChild(card);
+      });
+    });
+  }
+
+  // Search
+  function searchBook(value) {
+    const cards = document.querySelectorAll(".card");
+    value = value.toLowerCase();
+    cards.forEach(card=>{
+      const title = card.querySelector(".title").innerText.toLowerCase();
+      card.style.display = title.includes(value) ? "block" : "none";
+    });
+  }
 </script>
 
 </body>
