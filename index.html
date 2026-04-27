@@ -1,163 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Ravi Dhakad - Mind Trap</title>
-
-<!-- FONT -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
-
-<style>
-body {
-  margin:0;
-  background:#000;
-  color:#00ffcc;
-  font-family:'Orbitron', sans-serif;
-  text-align:center;
-}
-
-/* SCREEN */
-.screen {
-  display:none;
-  padding-top:20vh;
-}
-
-/* ACTIVE SCREEN */
-.active {
-  display:block;
-}
-
-/* BUTTON */
-button {
-  padding:12px 25px;
-  margin:10px;
-  border:none;
-  background:#00ffcc;
-  color:black;
-  cursor:pointer;
-  border-radius:5px;
-  font-weight:bold;
-  transition:0.3s;
-}
-
-button:hover {
-  transform:scale(1.1);
-}
-
-/* INPUT */
-input {
-  padding:10px;
-  border:1px solid #00ffcc;
-  background:black;
-  color:#00ffcc;
-}
-
-/* GLOW TEXT */
-h1 {
-  text-shadow:0 0 10px #00ffcc;
-}
-
-/* MOVING BUTTON */
-#moveBtn {
-  position:absolute;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>IQ Puzzle Game</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<!-- ENTRY -->
-<div id="entry" class="screen active">
-  <h1>Ravi Dhakad - Mind Trap</h1>
-  <input id="name" placeholder="Enter your name">
-  <br>
-  <button onclick="startGame()">Start Game</button>
-</div>
+    <div class="container">
+        <h1>🧠 IQ Challenge</h1>
+        <div id="game-box">
+            <p id="level-text">Level: 1 (Low IQ)</p>
+            <h2 id="question">2 + 2 = ?</h2>
+            <input type="text" id="answer" placeholder="Apna jawab likho...">
+            <button onclick="checkAnswer()">Submit</button>
+        </div>
 
-<!-- LEVEL 1 -->
-<div id="level1" class="screen">
-  <h1>Level 1: Catch Me 😈</h1>
-  <button id="moveBtn">Click Me</button>
-</div>
+        <div id="leaderboard">
+            <h3>🏆 Top Scores</h3>
+            <ul id="score-list">
+                </ul>
+        </div>
+    </div>
 
-<!-- LEVEL 2 -->
-<div id="level2" class="screen">
-  <h1>Level 2: Memory Test</h1>
-  <p id="words"></p>
-</div>
-
-<!-- LEVEL 3 -->
-<div id="level3" class="screen">
-  <h1>Level 3 Complete 🧠</h1>
-  <h2 id="scoreText"></h2>
-  <button onclick="restart()">Play Again</button>
-</div>
-
-<script>
-
-let score = 0;
-let player = "";
-
-// START
-function startGame(){
-  player = document.getElementById("name").value;
-  if(!player) return alert("Enter your name!");
-
-  show("level1");
-}
-
-// SWITCH SCREEN
-function show(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-
-// LEVEL 1 LOGIC
-let btn = document.getElementById("moveBtn");
-
-btn.onmouseover = function(){
-  btn.style.top = Math.random()*window.innerHeight + "px";
-  btn.style.left = Math.random()*window.innerWidth + "px";
-}
-
-btn.onclick = function(){
-  score += 10;
-  startLevel2();
-}
-
-// LEVEL 2
-function startLevel2(){
-  show("level2");
-
-  let words = ["Sky","Fire","Dream","Shadow","Light"];
-  document.getElementById("words").innerText = words.join(" ");
-
-  setTimeout(()=>{
-    let ans = prompt("What was the 3rd word?");
-    if(ans && ans.toLowerCase()=="dream"){
-      score += 20;
-      endGame();
-    } else {
-      alert("Wrong! Restarting...");
-      location.reload();
-    }
-  },3000);
-}
-
-// END
-function endGame(){
-  score += 30;
-  show("level3");
-  document.getElementById("scoreText").innerText =
-    player + " | Score: " + score;
-}
-
-// RESTART
-function restart(){
-  location.reload();
-}
-
-</script>
-
+    <script src="script.js"></script>
 </body>
 </html>
