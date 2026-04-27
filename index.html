@@ -1,28 +1,225 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>IQ Puzzle Game</title>
-    <link rel="stylesheet" href="style.css">
+  <title>IQ Master Game</title>
+  <style>
+    body {
+      margin:0;
+      font-family: Arial;
+      background: linear-gradient(135deg,#0f172a,#020617);
+      color:white;
+    }
+
+    header {
+      padding:15px;
+      text-align:center;
+      font-size:24px;
+      font-weight:bold;
+      background:#020617;
+      border-bottom:1px solid #1e293b;
+    }
+
+    .container {
+      display:flex;
+      flex-wrap:wrap;
+    }
+
+    .game {
+      flex:2;
+      padding:20px;
+    }
+
+    .leaderboard {
+      flex:1;
+      background:#020617;
+      border-left:1px solid #1e293b;
+      padding:20px;
+      max-height:100vh;
+      overflow:auto;
+    }
+
+    .card {
+      background:#1e293b;
+      padding:15px;
+      border-radius:10px;
+      margin-bottom:10px;
+    }
+
+    button {
+      padding:10px;
+      border:none;
+      margin:5px;
+      border-radius:5px;
+      background:#22c55e;
+      color:white;
+      cursor:pointer;
+    }
+
+    input {
+      padding:10px;
+      border-radius:5px;
+      border:none;
+      margin:5px;
+    }
+
+    #threeCanvas {
+      width:100%;
+      height:400px;
+      display:block;
+    }
+
+  </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <h1>🧠 IQ Challenge</h1>
-        <div id="game-box">
-            <p id="level-text">Level: 1 (Low IQ)</p>
-            <h2 id="question">2 + 2 = ?</h2>
-            <input type="text" id="answer" placeholder="Apna jawab likho...">
-            <button onclick="checkAnswer()">Submit</button>
-        </div>
+<header>🧠 IQ MASTER + RUBIK GAME</header>
 
-        <div id="leaderboard">
-            <h3>🏆 Top Scores</h3>
-            <ul id="score-list">
-                </ul>
-        </div>
+<div class="container">
+
+  <!-- GAME AREA -->
+  <div class="game">
+
+    <div class="card">
+      <h3>Enter Name</h3>
+      <input type="text" id="name" placeholder="Your Name">
+      <button onclick="startGame()">Start Game</button>
     </div>
 
-    <script src="script.js"></script>
+    <div class="card">
+      <h3 id="question">Press Start</h3>
+      <div id="options"></div>
+      <p id="result"></p>
+    </div>
+
+    <div class="card">
+      <h3>🧊 3D Rubik Cube</h3>
+      <canvas id="threeCanvas"></canvas>
+    </div>
+
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="leaderboard">
+    <h2>🏆 Leaderboard</h2>
+    <div id="scores"></div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ---------------- IQ GAME ----------------
+let player = "";
+let score = 0;
+let level = 0;
+
+const questions = [
+  {q:"2,4,8,16,?", options:["18","32","24","20"], ans:1},
+  {q:"Odd one out?", options:["Dog","Cat","Car","Lion"], ans:2},
+  {q:"Mirror of 3?", options:["E","W","M","Ɛ"], ans:3}
+];
+
+function startGame(){
+  player = document.getElementById("name").value;
+  score = 0;
+  level = 0;
+  loadQ();
+}
+
+function loadQ(){
+  if(level >= questions.length){
+    saveScore();
+    document.getElementById("question").innerText = "Game Over! Score: "+score;
+    document.getElementById("options").innerHTML="";
+    return;
+  }
+
+  let q = questions[level];
+  document.getElementById("question").innerText = q.q;
+
+  let html="";
+  q.options.forEach((opt,i)=>{
+    html += `<button onclick="check(${i})">${opt}</button>`;
+  });
+
+  document.getElementById("options").innerHTML = html;
+}
+
+function check(i){
+  if(i === questions[level].ans){
+    score++;
+    document.getElementById("result").innerText="✅ Correct";
+  } else {
+    document.getElementById("result").innerText="❌ Wrong";
+  }
+
+  level++;
+  setTimeout(()=>{
+    document.getElementById("result").innerText="";
+    loadQ();
+  },800);
+}
+
+// ---------------- LEADERBOARD ----------------
+function saveScore(){
+  let data = JSON.parse(localStorage.getItem("scores")) || [];
+  data.push({name:player, score:score});
+  localStorage.setItem("scores", JSON.stringify(data));
+  showScores();
+}
+
+function showScores(){
+  let data = JSON.parse(localStorage.getItem("scores")) || [];
+  data.sort((a,b)=>b.score-a.score);
+
+  let html="";
+  data.forEach(d=>{
+    html += `<div class="card">${d.name} - ${d.score}</div>`;
+  });
+
+  document.getElementById("scores").innerHTML = html;
+}
+
+showScores();
+
+// ---------------- 3D RUBIK ----------------
+let scene = new THREE.Scene();
+let camera = new THREE.PerspectiveCamera(75,1,0.1,1000);
+let renderer = new THREE.WebGLRenderer({canvas:document.getElementById("threeCanvas")});
+
+renderer.setSize(400,400);
+camera.position.z = 6;
+
+let light = new THREE.PointLight(0xffffff,1);
+light.position.set(5,5,5);
+scene.add(light);
+
+let group = new THREE.Group();
+scene.add(group);
+
+for(let i=0;i<20;i++){
+  let geo = new THREE.BoxGeometry(0.8,0.8,0.8);
+  let mat = new THREE.MeshStandardMaterial({color:Math.random()*0xffffff});
+  let cube = new THREE.Mesh(geo,mat);
+  cube.position.set(
+    (Math.random()-0.5)*3,
+    (Math.random()-0.5)*3,
+    (Math.random()-0.5)*3
+  );
+  group.add(cube);
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  group.rotation.x += 0.01;
+  group.rotation.y += 0.01;
+  renderer.render(scene,camera);
+}
+animate();
+
+</script>
+
 </body>
 </html>
