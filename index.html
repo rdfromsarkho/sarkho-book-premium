@@ -1,44 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BoxVista | Portfolio</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Ravi Dhakad - Mind Trap</title>
+
+<style>
+body {
+  margin:0;
+  background:black;
+  color:#00ffcc;
+  font-family:monospace;
+  text-align:center;
+}
+input, button {
+  padding:10px;
+  margin:10px;
+}
+#game,#level2,#level3,#leaderboard,#adminPanel{
+  display:none;
+}
+</style>
 </head>
+
 <body>
 
-<!-- HERO -->
-<section class="hero">
-  <h1>Creating visuals people feel, not just see.</h1>
-  <p>Faceless Creator | Reels | Aesthetic Content</p>
-  <a href="#work" class="btn">View Work</a>
-</section>
+<!-- ENTRY -->
+<div id="entry">
+  <h1>Ravi Dhakad - Mind Trap</h1>
+  <input id="username" placeholder="Enter your name">
+  <button onclick="startGame()">Start Game</button>
+</div>
 
-<!-- WORK -->
-<section id="work">
-  <h2>My Work</h2>
-  <div class="grid">
-    <div class="card">Reel 1</div>
-    <div class="card">Reel 2</div>
-    <div class="card">Reel 3</div>
-    <div class="card">Reel 4</div>
-    <div class="card">Reel 5</div>
-    <div class="card">Reel 6</div>
-  </div>
-</section>
+<!-- GAME -->
+<div id="game">
+  <h2>Catch Me 😈</h2>
+  <button id="moveBtn" onmouseover="moveButton()">Click me</button>
+</div>
 
-<!-- ABOUT -->
-<section class="about">
-  <h2>About Me</h2>
-  <p>I don’t show my face, I show emotions.</p>
-</section>
+<div id="level2">
+  <h2>Memorize</h2>
+  <p id="words"></p>
+</div>
 
-<!-- CONTACT -->
-<section class="contact">
-  <h2>Let’s Work Together</h2>
-  <a href="https://instagram.com/yourusername" target="_blank">Instagram</a>
-</section>
+<div id="level3">
+  <h2>Finish</h2>
+  <button onclick="endGame()">Complete</button>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="leaderboard">
+  <h2>Leaderboard</h2>
+  <ul id="scores"></ul>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="admin">
+  <h2>Admin Login</h2>
+  <input id="email" placeholder="Email">
+  <input id="pass" type="password" placeholder="Password">
+  <button onclick="adminLogin()">Login</button>
+</div>
+
+<div id="adminPanel">
+  <h2>Admin Panel</h2>
+  <ul id="allScores"></ul>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+<script>
+
+// 🔥 PASTE YOUR FIREBASE CONFIG HERE
+const firebaseConfig = {
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE",
+  databaseURL: "PASTE_HERE",
+  projectId: "PASTE_HERE",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let playerName="", playerCity="", score=0;
+
+// 🌍 GET CITY
+fetch("https://ipapi.co/json/")
+.then(res=>res.json())
+.then(data=> playerCity=data.city);
+// START
+function startGame(){
+  playerName=document.getElementById("username").value;
+  if(!playerName) return alert("Enter name");
+
+  document.getElementById("entry").style.display="none";
+  document.getElementById("game").style.display="block";
+}
+
+// LEVEL 1
+function moveButton(){
+  let btn=document.getElementById("moveBtn");
+  btn.style.position="absolute";
+  btn.style.top=Math.random()*300+"px";
+  btn.style.left=Math.random()*300+"px";
+}
+
+document.getElementById("moveBtn").onclick=()=>{
+  score+=10;
+  document.getElementById("game").style.display="none";
+  startLevel2();
+};
+
+// LEVEL 2
+function startLevel2(){
+  document.getElementById("level2").style.display="block";
+
+  let words=["Sky","Fire","Dream","Shadow","Light"];
+  document.getElementById("words").innerText=words.join(" ");
+
+  setTimeout(()=>{
+    let ans=prompt("3rd word?");
+    if(ans && ans.toLowerCase()=="dream"){
+      score+=20;
+      startLevel3();
+    } else {
+      alert("Wrong");
+      location.reload();
+    }
+  },3000);
+}
+
+// LEVEL 3
+function startLevel3(){
+  document.getElementById("level2").style.display="none";
+  document.getElementById("level3").style.display="block";
+}
+
+// END GAME
+function endGame(){
+  score+=30;
+
+  db.ref("scores").push({
+    name:playerName,
+    city:playerCity,
+    score:score
+  });
+
+  alert("Score saved!");
+  showLeaderboard();
+}
+
+// SHOW LEADERBOARD
+function showLeaderboard(){
+  document.getElementById("level3").style.display="none";
+  document.getElementById("leaderboard").style.display="block";
+
+  db.ref("scores").on("value",snap=>{
+    let data=snap.val();
+    let arr=Object.values(data||{});
+    arr.sort((a,b)=>b.score-a.score);
+
+    let list=document.getElementById("scores");
+    list.innerHTML="";
+
+    arr.slice(0,10).forEach(s=>{
+      let li=document.createElement("li");
+      li.innerText=`${s.name} (${s.city}) - ${s.score}`;
+      list.appendChild(li);
+    });
+  });
+}
+
+// ADMIN LOGIN
+function adminLogin(){
+  let email=document.getElementById("email").value;
+  let pass=document.getElementById("pass").value;
+
+  firebase.auth().signInWithEmailAndPassword(email,pass)
+  .then(()=>{
+    alert("Admin login success");
+    loadAllScores();
+  })
+  .catch(()=> alert("Wrong login"));
+}
+
+// ADMIN PANEL
+function loadAllScores(){
+  document.getElementById("adminPanel").style.display="block";
+
+  db.ref("scores").on("value",snap=>{
+    let data=snap.val();
+    let list=document.getElementById("allScores");
+    list.innerHTML="";
+
+    for(let id in data){
+      let s=data[id];
+      let li=document.createElement("li");
+      li.innerText=`${s.name} - ${s.city} - ${s.score}`;
+      list.appendChild(li);
+    }
+  });
+}
+
+</script>
 
 </body>
 </html>
