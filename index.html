@@ -1,54 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chiyta Games</title>
-<style>
-  body { margin:0; font-family:'Segoe UI', sans-serif; background:#0d0d0d; color:#fff; }
-  header{padding:20px; text-align:center; background:linear-gradient(90deg,#00ff88,#00cc6a); font-size:24px; font-weight:bold; letter-spacing:1px;}
-  .hero{width:100%;height:250px;background:url('https://via.placeholder.com/1200x250.png?text=Chiyta+Games') center/cover no-repeat; display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:bold;}
-  .container{display:flex;flex-direction:column;align-items:center;gap:20px;padding:20px;}
-  .card{width:90%; max-width:400px; background:#111; border-radius:15px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.3); text-align:center; transition:0.3s;}
-  .card:hover{transform:translateY(-5px); box-shadow:0 10px 20px rgba(0,204,106,0.5);}
-  .card img{width:100%; height:250px; object-fit:cover;}
-  .title{font-weight:bold; font-size:18px; margin:10px 0 5px;}
-  button{padding:10px 15px; margin-bottom:15px; border:none; border-radius:25px; background:linear-gradient(45deg,#00ff88,#00cc6a); font-weight:bold; cursor:pointer; color:#000;}
-  footer{padding:20px; text-align:center; background:#00cc6a; color:#000; margin-top:30px;}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BoxVista | Portfolio</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>Chiyta Games</header>
+<!-- HERO -->
+<section class="hero">
+  <h1>Creating visuals people feel, not just see.</h1>
+  <p>Faceless Creator | Reels | Aesthetic Content</p>
+  <a href="#work" class="btn">View Work</a>
+</section>
 
-<div class="hero">Premium Mini Games Portal</div>
-
-<div class="container" id="gameList">
-  <div class="card">
-    <img src="https://via.placeholder.com/400x250.png?text=Click+Game" alt="Click Game">
-    <div class="title">Click Challenge</div>
-    <button onclick="playGame()">Play Now</button>
+<!-- WORK -->
+<section id="work">
+  <h2>My Work</h2>
+  <div class="grid">
+    <div class="card">Reel 1</div>
+    <div class="card">Reel 2</div>
+    <div class="card">Reel 3</div>
+    <div class="card">Reel 4</div>
+    <div class="card">Reel 5</div>
+    <div class="card">Reel 6</div>
   </div>
-</div>
+</section>
 
-<footer>&copy; 2026 Chiyta Games | All Rights Reserved</footer>
+<!-- ABOUT -->
+<section class="about">
+  <h2>About Me</h2>
+  <p>I don’t show my face, I show emotions.</p>
+</section>
 
-<script>
-// Simple click-based mini game
-function playGame(){
-  let score = 0;
-  let clicks = prompt("Welcome to Click Challenge! How many clicks can you do in 5 seconds? Type start to play.");
-  if(clicks && clicks.toLowerCase() === "start"){
-    alert("Game started! Click OK as fast as you can for 5 seconds.");
-    let start = Date.now();
-    let end = start + 5000;
-    while(Date.now() < end){
-      score++;
-    }
-    alert("Time's up! Your score: " + score);
-  }
-}
-</script>
+<!-- CONTACT -->
+<section class="contact">
+  <h2>Let’s Work Together</h2>
+  <a href="https://instagram.com/yourusername" target="_blank">Instagram</a>
+</section>
 
 </body>
 </html>
