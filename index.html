@@ -4,20 +4,62 @@
 <meta charset="UTF-8">
 <title>Ravi Dhakad - Mind Trap</title>
 
+<!-- FONT -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron&display=swap" rel="stylesheet">
+
 <style>
 body {
   margin:0;
-  background:black;
+  background:#000;
   color:#00ffcc;
-  font-family:monospace;
+  font-family:'Orbitron', sans-serif;
   text-align:center;
 }
-input, button {
-  padding:10px;
-  margin:10px;
-}
-#game,#level2,#level3,#leaderboard,#adminPanel{
+
+/* SCREEN */
+.screen {
   display:none;
+  padding-top:20vh;
+}
+
+/* ACTIVE SCREEN */
+.active {
+  display:block;
+}
+
+/* BUTTON */
+button {
+  padding:12px 25px;
+  margin:10px;
+  border:none;
+  background:#00ffcc;
+  color:black;
+  cursor:pointer;
+  border-radius:5px;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+button:hover {
+  transform:scale(1.1);
+}
+
+/* INPUT */
+input {
+  padding:10px;
+  border:1px solid #00ffcc;
+  background:black;
+  color:#00ffcc;
+}
+
+/* GLOW TEXT */
+h1 {
+  text-shadow:0 0 10px #00ffcc;
+}
+
+/* MOVING BUTTON */
+#moveBtn {
+  position:absolute;
 }
 </style>
 </head>
@@ -25,183 +67,94 @@ input, button {
 <body>
 
 <!-- ENTRY -->
-<div id="entry">
+<div id="entry" class="screen active">
   <h1>Ravi Dhakad - Mind Trap</h1>
-  <input id="username" placeholder="Enter your name">
+  <input id="name" placeholder="Enter your name">
+  <br>
   <button onclick="startGame()">Start Game</button>
 </div>
 
-<!-- GAME -->
-<div id="game">
-  <h2>Catch Me 😈</h2>
-  <button id="moveBtn" onmouseover="moveButton()">Click me</button>
+<!-- LEVEL 1 -->
+<div id="level1" class="screen">
+  <h1>Level 1: Catch Me 😈</h1>
+  <button id="moveBtn">Click Me</button>
 </div>
 
-<div id="level2">
-  <h2>Memorize</h2>
+<!-- LEVEL 2 -->
+<div id="level2" class="screen">
+  <h1>Level 2: Memory Test</h1>
   <p id="words"></p>
 </div>
 
-<div id="level3">
-  <h2>Finish</h2>
-  <button onclick="endGame()">Complete</button>
+<!-- LEVEL 3 -->
+<div id="level3" class="screen">
+  <h1>Level 3 Complete 🧠</h1>
+  <h2 id="scoreText"></h2>
+  <button onclick="restart()">Play Again</button>
 </div>
-
-<!-- LEADERBOARD -->
-<div id="leaderboard">
-  <h2>Leaderboard</h2>
-  <ul id="scores"></ul>
-</div>
-
-<!-- ADMIN LOGIN -->
-<div id="admin">
-  <h2>Admin Login</h2>
-  <input id="email" placeholder="Email">
-  <input id="pass" type="password" placeholder="Password">
-  <button onclick="adminLogin()">Login</button>
-</div>
-
-<div id="adminPanel">
-  <h2>Admin Panel</h2>
-  <ul id="allScores"></ul>
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
 <script>
 
-// 🔥 PASTE YOUR FIREBASE CONFIG HERE
-const firebaseConfig = {
-  apiKey: "PASTE_HERE",
-  authDomain: "PASTE_HERE",
-  databaseURL: "PASTE_HERE",
-  projectId: "PASTE_HERE",
-};
+let score = 0;
+let player = "";
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let playerName="", playerCity="", score=0;
-
-// 🌍 GET CITY
-fetch("https://ipapi.co/json/")
-.then(res=>res.json())
-.then(data=> playerCity=data.city);
 // START
 function startGame(){
-  playerName=document.getElementById("username").value;
-  if(!playerName) return alert("Enter name");
+  player = document.getElementById("name").value;
+  if(!player) return alert("Enter your name!");
 
-  document.getElementById("entry").style.display="none";
-  document.getElementById("game").style.display="block";
+  show("level1");
 }
 
-// LEVEL 1
-function moveButton(){
-  let btn=document.getElementById("moveBtn");
-  btn.style.position="absolute";
-  btn.style.top=Math.random()*300+"px";
-  btn.style.left=Math.random()*300+"px";
+// SWITCH SCREEN
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-document.getElementById("moveBtn").onclick=()=>{
-  score+=10;
-  document.getElementById("game").style.display="none";
+// LEVEL 1 LOGIC
+let btn = document.getElementById("moveBtn");
+
+btn.onmouseover = function(){
+  btn.style.top = Math.random()*window.innerHeight + "px";
+  btn.style.left = Math.random()*window.innerWidth + "px";
+}
+
+btn.onclick = function(){
+  score += 10;
   startLevel2();
-};
+}
 
 // LEVEL 2
 function startLevel2(){
-  document.getElementById("level2").style.display="block";
+  show("level2");
 
-  let words=["Sky","Fire","Dream","Shadow","Light"];
-  document.getElementById("words").innerText=words.join(" ");
+  let words = ["Sky","Fire","Dream","Shadow","Light"];
+  document.getElementById("words").innerText = words.join(" ");
 
   setTimeout(()=>{
-    let ans=prompt("3rd word?");
+    let ans = prompt("What was the 3rd word?");
     if(ans && ans.toLowerCase()=="dream"){
-      score+=20;
-      startLevel3();
+      score += 20;
+      endGame();
     } else {
-      alert("Wrong");
+      alert("Wrong! Restarting...");
       location.reload();
     }
   },3000);
 }
 
-// LEVEL 3
-function startLevel3(){
-  document.getElementById("level2").style.display="none";
-  document.getElementById("level3").style.display="block";
-}
-
-// END GAME
+// END
 function endGame(){
-  score+=30;
-
-  db.ref("scores").push({
-    name:playerName,
-    city:playerCity,
-    score:score
-  });
-
-  alert("Score saved!");
-  showLeaderboard();
+  score += 30;
+  show("level3");
+  document.getElementById("scoreText").innerText =
+    player + " | Score: " + score;
 }
 
-// SHOW LEADERBOARD
-function showLeaderboard(){
-  document.getElementById("level3").style.display="none";
-  document.getElementById("leaderboard").style.display="block";
-
-  db.ref("scores").on("value",snap=>{
-    let data=snap.val();
-    let arr=Object.values(data||{});
-    arr.sort((a,b)=>b.score-a.score);
-
-    let list=document.getElementById("scores");
-    list.innerHTML="";
-
-    arr.slice(0,10).forEach(s=>{
-      let li=document.createElement("li");
-      li.innerText=`${s.name} (${s.city}) - ${s.score}`;
-      list.appendChild(li);
-    });
-  });
-}
-
-// ADMIN LOGIN
-function adminLogin(){
-  let email=document.getElementById("email").value;
-  let pass=document.getElementById("pass").value;
-
-  firebase.auth().signInWithEmailAndPassword(email,pass)
-  .then(()=>{
-    alert("Admin login success");
-    loadAllScores();
-  })
-  .catch(()=> alert("Wrong login"));
-}
-
-// ADMIN PANEL
-function loadAllScores(){
-  document.getElementById("adminPanel").style.display="block";
-
-  db.ref("scores").on("value",snap=>{
-    let data=snap.val();
-    let list=document.getElementById("allScores");
-    list.innerHTML="";
-
-    for(let id in data){
-      let s=data[id];
-      let li=document.createElement("li");
-      li.innerText=`${s.name} - ${s.city} - ${s.score}`;
-      list.appendChild(li);
-    }
-  });
+// RESTART
+function restart(){
+  location.reload();
 }
 
 </script>
